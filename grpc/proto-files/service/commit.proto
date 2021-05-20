@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-import "google/protobuf/any.proto";
+import "google/protobuf/empty.proto";
 
 option go_package = "Nystya/distributed-commit/grpc/proto-files/service";
 
@@ -11,14 +11,15 @@ service Commit {
     rpc Commit(TransactionID) returns (TransactionResponse);
     rpc Abort(TransactionID) returns (TransactionResponse);
 
-    rpc Get(Key) returns (google.protobuf.Any);
+    rpc Get(Key) returns (DataResponse);
+    rpc GetStatus(TransactionID) returns (TransactionResponse);
 
-    rpc Fail(FailRequest) returns (google.protobuf.Any);
+    rpc Fail(FailRequest) returns (google.protobuf.Empty);
 }
 
 message TransactionRequest {
     string Key = 1;
-    google.protobuf.Any Value = 2;
+    bytes Value = 2;
     TransactionID TransactionID = 3;
 }
 
@@ -28,8 +29,9 @@ message TransactionResponse {
 }
 
 enum Decision {
-    COMMIT = 0;
-    ABORT = 1;
+    READY   = 0;
+    COMMIT  = 1;
+    ABORT   = 2;
 }
 
 message TransactionID {
@@ -42,4 +44,8 @@ message Key {
 
 message FailRequest {
     int32 Period = 1;
+}
+
+message DataResponse {
+    bytes Value = 1;
 }
