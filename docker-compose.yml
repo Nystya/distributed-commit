@@ -1,0 +1,26 @@
+version: '3.7'
+
+services:
+  2pc-peer-0:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: "-peers=2pc-peer-1:6000,2pc-peer-2:6000,2pc-peer-3:6000"
+
+  2pc-peer-1:
+      build:
+        context: .
+        dockerfile: Dockerfile
+      command: "-peers=2pc-peer-0:6000,2pc-peer-2:6000,2pc-peer-3:6000"
+
+  2pc-peer-2:
+      build:
+        context: .
+        dockerfile: Dockerfile
+      command: "-peers=2pc-peer-0:6000,2pc-peer-1:6000,2pc-peer-3:6000"
+
+  2pc-peer-3:
+      build:
+        context: .
+        dockerfile: Dockerfile
+      command: "-peers=2pc-peer-0:6000,2pc-peer-1:6000,2pc-peer-2:6000"

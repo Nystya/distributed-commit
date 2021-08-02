@@ -7,13 +7,15 @@ import (
 
 type MemoryDatabase struct {
 	cache map[string]*domain.Entry
+	history map[string]*domain.Entry
 
-	lock  *sync.Mutex
+	lock  	*sync.Mutex
 }
 
 func NewMemoryDatabase() *MemoryDatabase {
 	return &MemoryDatabase{
 		cache: make(map[string]*domain.Entry),
+		history: make(map[string]*domain.Entry),
 		lock: &sync.Mutex{},
 	}
 }
@@ -28,6 +30,9 @@ func (m *MemoryDatabase) Put(key string, entry *domain.Entry) error {
 }
 
 func (m *MemoryDatabase) Get(key string) (*domain.Entry, error) {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+
 	val, ok := m.cache[key]
 	if !ok {
 		return nil, &domain.NotFoundError{}
@@ -46,12 +51,22 @@ func (m *MemoryDatabase) GetAllKeys() []string {
 	return keys
 }
 
-func (m *MemoryDatabase) Rollback() error {
-	panic("implement me")
+func (m *MemoryDatabase) Rollback(key string) error {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+
+	m.cache[key] = m.history[key]
+
+	return nil
 }
 
-func (m *MemoryDatabase) Commit() error {
-	panic("implement me")
+func (m *MemoryDatabase) Commit(key string) error {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+
+	m.history[key] = m.cache[key]
+
+	return nil
 }
 
 func (m *MemoryDatabase) Recover() ([]*domain.Entry, error) {

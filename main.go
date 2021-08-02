@@ -12,14 +12,7 @@ import (
 )
 
 // TODO: Failure recover
-// TODO: Test with multiple peers
-// TODO: Implement fail - chaos monkey
 // TODO: Optimizations PrA, PrC, 3PC
-
-// TODO: Future work slide
-// TODO: Filmulet
-// TODO: Tracer
-// TODO: 8 min
 
 func main() {
 	done := make(chan bool)
@@ -46,12 +39,6 @@ func main() {
 
 	participantService := service.NewTPCParticipant(wal, dataCache, txCache, coordinatorService)
 
-	log.Println("Recovering last state...")
-	err = participantService.Recover()
-	if err != nil {
-		log.Fatalln("Could not recover state: ", err.Error())
-	}
-
 	commitServer := controller.NewCommitServer(participantService)
 
 	log.Println("Getting listener on: ", cfg.Port)
@@ -74,6 +61,12 @@ func main() {
 	err = coordinatorService.Connect()
 	if err != nil {
 		log.Fatalln("Failed to connect to peers: ", err.Error())
+	}
+
+	log.Println("Recovering last state...")
+	err = participantService.Recover(false)
+	if err != nil {
+		log.Fatalln("Could not recover state: ", err.Error())
 	}
 
 	<- done

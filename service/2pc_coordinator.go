@@ -7,7 +7,6 @@ import (
 	"github.com/Nystya/distributed-commit/repository/messaging"
 	"github.com/google/uuid"
 	"log"
-	"strconv"
 	"sync"
 	"time"
 )
@@ -28,10 +27,10 @@ func NewTPCCoordinator(peerList []string, includeMyself bool, myPort string) *TP
 
 	log.Println("Creating peers from list...")
 
-	for i, peer := range peerList {
+	for _, peer := range peerList {
 
 		peerConfig := &messaging.CommitClientConfig{
-			PeerName: 	strconv.Itoa(i),
+			PeerName: 	peer,
 			ServerAddr: peer,
 		}
 
@@ -125,6 +124,7 @@ func (t *TPCCoordinator) Put(key string, value []byte) error {
 		t.commit(newUUID.String())
 	} else {
 		t.abort(newUUID.String())
+		return &domain.AbortedError{}
 	}
 
 	return nil
@@ -186,6 +186,8 @@ func (t *TPCCoordinator) Gather(key string) (map[string][]byte, error) {
 
 	data := make(map[string][]byte)
 
+	lock := &sync.Mutex{}
+
 	wg := &sync.WaitGroup{}
 
 	for _, rpcPeer := range append(t.rpcPeers, t.myself) {
@@ -203,9 +205,15 @@ func (t *TPCCoordinator) Gather(key string) (map[string][]byte, error) {
 
 			resp, err := rpcPeer.Get(ctx, pbKey)
 			if err != nil {
+				lock.Lock()
+				defer lock.Unlock()
+
 				data[rpcPeer.PeerName] = nil
 				return
 			}
+
+			lock.Lock()
+			defer lock.Unlock()
 
 			data[rpcPeer.PeerName] = resp.Value
 		}(rpcPeer)

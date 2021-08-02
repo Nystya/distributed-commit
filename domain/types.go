@@ -29,4 +29,14 @@ type NotFoundError struct {
 func (n NotFoundError) Error() string {
 	return "Data not found!"
 }
+
+type AbortedError struct {
+
+}
+
+func (a AbortedError) Error() string {
+	return "Transaction was aborted"
+}
+
+
  

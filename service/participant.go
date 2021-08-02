@@ -9,5 +9,5 @@ type Participant interface {
 
 	Get(key string) ([]byte, error)
 	GetStatus(txID string) (domain.Status, error)
-	Recover() error
+	Recover(shouldUnlock bool) error
 }

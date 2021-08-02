@@ -35,6 +35,17 @@ func NewFileDatabase(config *WriteAheadLogConfig) (*WriteAheadLog, error) {
 		return nil, err
 	}
 
+	// Filter out only my wal files
+	n := 0
+	for _, file := range fileList {
+		if strings.HasPrefix(file.Name(), config.Prefix) {
+			fileList[n] = file
+			n++
+		}
+	}
+
+	fileList = fileList[:n]
+
 	fileListNames := make([]string, 0)
 	for _, file := range fileList {
 		fileListNames = append(fileListNames, config.Dir + "/" + file.Name())
@@ -153,7 +164,7 @@ func (f *WriteAheadLog) Put(key string, entry *domain.Entry) error {
 }
 
 func (f *WriteAheadLog) CreateNextFile() error {
-	create, err := os.Create(fmt.Sprintf("%v/%v_%v_wal", f.dir, f.nextIndex, f.prefix))
+	create, err := os.Create(fmt.Sprintf("%v/%v_%v_wal", f.dir, f.prefix, f.nextIndex))
 	if err != nil {
 		return err
 	}
@@ -168,11 +179,11 @@ func (f *WriteAheadLog) Get(key string) (*domain.Entry, error) {
 	panic("implement me")
 }
 
-func (f *WriteAheadLog) Rollback() error {
+func (f *WriteAheadLog) Rollback(key string) error {
 	panic("implement me")
 }
 
-func (f *WriteAheadLog) Commit() error {
+func (f *WriteAheadLog) Commit(key string) error {
 	panic("implement me")
 }
 

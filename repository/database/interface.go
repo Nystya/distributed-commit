@@ -8,6 +8,6 @@ type Database interface {
 	GetAllKeys() []string
 
 	Recover() ([]*domain.Entry, error)
-	Rollback() error
-	Commit() error
+	Rollback(key string) error
+	Commit(key string) error
 }
